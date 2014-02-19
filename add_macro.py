@@ -39,6 +39,9 @@ def add_macro(fname, *filenames, **kwargs):
                                 item.filename, zipread.read(item.filename)
                                 ))
                 zipwrite.writestr('xl/vbaProject.bin', file(macro_loc).read())
+        os.remove(fname)
+        fname = fname.split('.')[0]
+        fname = fname + '.xlsm'
         shutil.move(tempname, fname)
     finally:
         shutil.rmtree(tempdir)
@@ -76,6 +79,13 @@ def update_content_types(data):
     elem.attributes['PartName'] = '/xl/vbaProject.bin'
     elem.attributes['ContentType'] = 'application/vnd.ms-office.vbaProject'
     types.appendChild(elem)
+
+    # transform headers to xlsm to enable macros
+    for item in types.getElementsByTagName('Override'):
+        if item.hasAttribute('PartName') and item.getAttribute('PartName') == '/xl/workbook.xml':
+            print item.attributes
+            item.setAttribute('ContentType', 'application/vnd.ms-excel.sheet.macroEnabled.main+xml')
+
     return xml.toxml()
 
 if __name__ == '__main__':
